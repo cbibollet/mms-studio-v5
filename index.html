@@ -1,247 +1,210 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MMS Studio v5 — Mathias Marine Sport</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/bundle.js"></script>
-
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#1c1e21;min-height:100vh}
-.header{background:#1877F2;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;color:#fff}
-.h-left h1{font-size:16px;font-weight:800}
-.sys-status{background:rgba(0,0,0,0.2);padding:6px 12px;border-radius:20px;font-size:11px;display:flex;align-items:center;gap:8px;margin-top:6px;width:fit-content;border:1px solid rgba(255,255,255,0.1)}
-.status-dot{width:10px;height:10px;border-radius:50%;background:#ff4d4d;transition:0.3s}
-.dot-green{background:#00e676;box-shadow:0 0 10px #00e676}
-.btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none}
-.btn-white{background:#fff;color:#1877F2}
-.btn-blue{background:#1565C0;color:#fff}
-.btn-red{background:#e53935;color:#fff}
-.btn-green{background:#42b72a;color:#fff}
-.tabs{background:#fff;border-bottom:1px solid #ddd;display:flex;padding:0 20px}
-.tab{padding:14px 20px;font-size:13px;font-weight:700;cursor:pointer;color:#65676b;border-bottom:3px solid transparent}
-.tab.active{color:#1877F2;border-bottom-color:#1877F2}
-.content{padding:20px;max-width:1400px;margin:0 auto}
-.sec{display:none}.sec.active{display:block}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.card{background:#fff;border-radius:10px;overflow:hidden;border:1px solid #ddd;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
-.ch{padding:8px 12px;display:flex;justify-content:space-between;color:#fff;font-weight:bold;font-size:12px}
-.cb{padding:12px}
-.ct{font-size:12px;font-weight:700;margin-bottom:10px;height:34px;overflow:hidden}
-.agent-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media(max-width:850px){.agent-layout{grid-template-columns:1fr}}
-.agent-panel{background:#fff;border-radius:12px;padding:25px;border:1px solid #ddd}
-.dropz{border:3px dashed #1877F2;border-radius:15px;padding:50px;text-align:center;cursor:pointer;background:#f0f7ff;position:relative}
-.dropz input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.prog-wrap{margin:20px 0;display:none}
-.prog-bar{height:12px;background:#eee;border-radius:6px;overflow:hidden}
-.prog-fill{height:100%;background:#1877F2;width:0%;transition:width 0.4s}
-.photo-compare{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px}
-.photo-panel img, .photo-panel canvas{width:100%;border-radius:10px;background:#f9f9f9;border:1px solid #ddd;display:block}
-.ann-box{background:#f1f3f4;padding:15px;border-radius:10px;white-space:pre-wrap;font-size:13px;border:1px solid #ddd;margin-bottom:15px;min-height:200px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMS Studio v6.6 — Mathias Marine Sport</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/bundle.js"></script>
+    <style>
+        :root { --blue: #1877F2; --red: #e53935; --green: #42b72a; --bg: #f0f2f5; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: #1c1e21; }
+        .header { background: var(--blue); padding: 15px 25px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .status-pill { background: rgba(0,0,0,0.2); padding: 6px 15px; border-radius: 20px; font-size: 11px; display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4d4d; transition: 0.3s; }
+        .dot.online { background: #00e676; box-shadow: 0 0 10px #00e676; }
+        .tabs { background: white; display: flex; border-bottom: 1px solid #ddd; padding: 0 20px; position: sticky; top: 0; z-index: 10; }
+        .tab { padding: 16px 20px; cursor: pointer; font-weight: bold; color: #65676b; border-bottom: 3px solid transparent; }
+        .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .container { padding: 20px; max-width: 1500px; margin: 0 auto; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; border-left: 6px solid var(--blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-val { font-size: 24px; font-weight: 800; color: var(--blue); display: block; }
+        .stat-lbl { font-size: 11px; text-transform: uppercase; color: #65676b; font-weight: bold; }
+        .table-box { background: white; border-radius: 12px; border: 1px solid #ddd; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; color: #65676b; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+        .prio-red { color: #d32f2f; font-weight: bold; }
+        .studio-box { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; text-align: center; border: 1px solid #ddd; }
+        .drop-zone { border: 3px dashed var(--blue); padding: 40px; border-radius: 15px; background: #f0f7ff; cursor: pointer; position: relative; }
+        .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        canvas { width: 100%; margin-top: 20px; border-radius: 10px; display: none; border: 1px solid #ddd; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-green { background: var(--green); color: white; width: 100%; margin-top: 15px; }
+    </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="h-left">
-    <h1>MMS Studio v5 — Mathias Marine Sport</h1>
-    <div class="sys-status">
-        <div id="sys-dot" class="status-dot"></div>
-        <span id="sys-text">Connexion Expert IA...</span>
+    <div>
+        <h1>MMS STUDIO — Mathias Marine Sport</h1>
+        <div class="status-pill">
+            <div id="ia-dot" class="dot"></div>
+            <span id="ia-txt">Connexion Expert IA...</span>
+        </div>
     </div>
-  </div>
-  <div class="h-right">
-    <button class="btn btn-red" onclick="localStorage.clear();location.reload();">Vider Mémoire</button>
-    <label class="btn btn-white">
-      Charger Excel <input type="file" accept=".xlsx,.xls" onchange="importExcel(this.files[0])" style="display:none">
+    <label class="btn btn-blue" style="background:white; color:var(--blue);">
+        📁 Importer Excel <input type="file" id="xlIn" accept=".xlsx,.xls" style="display:none">
     </label>
-  </div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('produits')">📦 Inventaire</div>
-  <div class="tab" onclick="showTab('generateur')">📝 Marketplace</div>
-  <div class="tab" onclick="showTab('agent')">🎨 Studio IA</div>
+    <div class="tab active" onclick="go('dash')">📊 Dashboard</div>
+    <div class="tab" onclick="go('inv')">📦 Inventaire</div>
+    <div class="tab" onclick="go('studio')">🎨 Studio IA</div>
 </div>
 
-<div class="content">
-
-<div class="sec active" id="sec-produits">
-    <div id="ip-prompt" style="text-align:center;padding:100px 20px">
-        <h2 style="color:#1877F2">Bienvenue au Studio Mathias Marine</h2>
-        <p>Charge ton fichier Excel pour commencer.</p>
-    </div>
-    <div id="loaded" style="display:none">
-        <div class="grid" id="grid"></div>
-    </div>
-</div>
-
-<div class="sec" id="sec-generateur">
-    <div class="agent-layout">
-        <div class="agent-panel">
-            <h3>Produits</h3>
-            <input type="text" id="gen-srch" placeholder="Rechercher SKU..." oninput="renderGenList()" style="width:100%;padding:12px;margin:15px 0;border-radius:8px;border:1px solid #ddd">
-            <div id="plist" style="max-height:550px;overflow-y:auto"></div>
+<div class="container">
+    <div id="sec-dash" class="section active">
+        <div class="dash-grid" id="dash-stats">
+            <div class="stat-card"><span class="stat-lbl">En attente de données...</span></div>
         </div>
-        <div class="agent-panel">
-            <h3>Annonce Marketplace</h3>
-            <div id="ann-box" class="ann-box">Sélectionne un article...</div>
-            <button class="btn btn-blue" style="width:100%" onclick="copyGen()">Copier l'annonce</button>
+        <div class="table-box">
+            <table id="dash-table">
+                <thead><tr><th>Catégorie</th><th>Nb Articles</th><th>Coût Total</th><th>Marge Est.</th></tr></thead>
+                <tbody id="dash-body"></tbody>
+            </table>
         </div>
     </div>
-</div>
 
-<div class="sec" id="sec-agent">
-    <div class="agent-layout">
-        <div class="agent-panel">
-            <div class="dropz">
-                <input type="file" accept="image/*" onchange="startAgent(this.files[0])">
-                <h3 style="color:#1877F2">Glisse ta photo produit</h3>
-                <p>Le détourage fond blanc est automatique.</p>
-            </div>
-            <div class="prog-wrap" id="prog-wrap">
-                <div id="prog-msg" style="font-size:13px;margin-bottom:8px;font-weight:bold;color:#1877F2">Traitement...</div>
-                <div class="prog-bar"><div id="prog-fill" class="prog-fill"></div></div>
-            </div>
-            <div style="margin-top:20px">
-                <label style="font-size:12px;font-weight:bold">Couleur Fond :</label>
-                <input type="color" id="bgc" value="#ffffff">
-            </div>
+    <div id="sec-inv" class="section">
+        <input type="text" id="srch" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; margin-bottom:15px" placeholder="Rechercher SKU ou description...">
+        <div class="table-box">
+            <table>
+                <thead><tr><th>SKU</th><th>Description</th><th>Âge (m)</th><th>Coût</th><th>Prix FB</th><th>Marge</th></tr></thead>
+                <tbody id="inv-body"></tbody>
+            </table>
         </div>
-        <div class="agent-panel">
-            <div id="result-placeholder" style="text-align:center;color:#999;padding:80px;border:2px dashed #eee;border-radius:10px">Le résultat s'affichera ici</div>
-            <div class="photo-compare" id="photo-compare" style="display:none">
-                <div class="photo-panel"><label>Originale</label><img id="img-orig"></div>
-                <div class="photo-panel"><label>MMS Studio</label><canvas id="canvas-result"></canvas></div>
+    </div>
+
+    <div id="sec-studio" class="section">
+        <div class="studio-box">
+            <div class="drop-zone">
+                <input type="file" id="imgIn" accept="image/*">
+                <h3>📸 Glisse ta photo ici</h3>
+                <p>Retrait du fond blanc automatique</p>
             </div>
-            <button id="dl-btn" class="btn btn-green" style="width:100%;margin-top:20px;display:none" onclick="downloadResult()">Télécharger (PNG)</button>
+            <div id="prog" style="display:none; margin-top:20px; font-weight:bold; color:var(--blue);">L'IA travaille... patientez</div>
+            <canvas id="cvs"></canvas>
+            <button id="dl" class="btn btn-green" style="display:none" onclick="dlImg()">Télécharger la photo prête (PNG)</button>
         </div>
     </div>
 </div>
 
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-let produits=[], statuts={}, selProd=null;
+    let produits = [];
 
-// WATCHDOG IA
-function watchdog() {
-    const dot = document.getElementById('sys-dot');
-    const txt = document.getElementById('sys-text');
-    if (typeof imglyRemoveBackground !== 'undefined') {
-        dot.className = 'status-dot dot-green';
-        txt.textContent = 'Expert IA Connecté';
-    } else {
-        dot.className = 'status-dot';
-        txt.textContent = 'Connexion en cours...';
+    // WATCHDOG IA (FORCE LE CDN POUR GITHUB)
+    function checkIA() {
+        if (typeof imglyRemoveBackground !== 'undefined') {
+            document.getElementById('ia-dot').classList.add('online');
+            document.getElementById('ia-txt').textContent = "Expert IA Connecté (Prêt)";
+        } else { setTimeout(checkIA, 1000); }
     }
-}
-setInterval(watchdog, 2000);
+    checkIA();
 
-// MÉMOIRE
-window.onload = () => {
-    const p = localStorage.getItem('mms_produits');
-    if(p) {
-        produits = JSON.parse(p);
-        document.getElementById('ip-prompt').style.display='none';
-        document.getElementById('loaded').style.display='block';
-        renderP(); renderGenList();
-    }
-};
-
-function showTab(t){
-    document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['produits','generateur','agent'][i]===t));
-    document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
-    document.getElementById('sec-'+t).classList.add('active');
-}
-
-function importExcel(file){
-    if(!file)return;
-    const r=new FileReader();
-    r.onload=e=>{
-        const wb=XLSX.read(e.target.result,{type:'binary'});
-        const ws=wb.Sheets['_Données'];
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1});
-        produits=[];
-        for(let i=1;i<rows.length;i++){
-            const x=rows[i]; if(!x[1])continue;
-            produits.push({sku:String(x[1]).trim(),desc:x[2]||'',prix:parseFloat(x[8])||0});
-        }
-        localStorage.setItem('mms_produits', JSON.stringify(produits));
-        location.reload();
-    };
-    r.readAsBinaryString(file);
-}
-
-function renderP(){
-    document.getElementById('grid').innerHTML=produits.map(p=>`
-        <div class="card">
-            <div class="ch" style="background:#1877F2"><span>SKU ${p.sku}</span><span>${p.prix}$</span></div>
-            <div class="cb"><div class="ct">${p.desc}</div><button class="btn btn-blue" style="width:100%" onclick="goGen('${p.sku}')">Annonce</button></div>
-        </div>
-    `).join('');
-}
-
-function renderGenList(){
-    const s=document.getElementById('gen-srch').value.toLowerCase();
-    document.getElementById('plist').innerHTML=produits.filter(p=>p.sku.includes(s) || p.desc.toLowerCase().includes(s)).slice(0,15).map(p=>`
-        <div style="padding:12px;border-bottom:1px solid #eee;cursor:pointer;font-size:12px" onclick="selP('${p.sku}')"><strong>${p.sku}</strong> - ${p.desc}</div>
-    `).join('');
-}
-
-function selP(sku){
-    const p=produits.find(x=>x.sku===sku); if(!p)return;
-    const txt=`${p.desc}\n\n📦 Article en stock (Prêt pour ramassage)\n💰 Prix certifié Mathias Marine : ${p.prix.toLocaleString('fr-CA')} $\n\n📍 Mathias Marine Sport\n874 Ch. des Patriotes, Otterburn Park, QC\n🚚 Expédition par colis disponible au Québec !\n\n📞 Réservez au : 450 467-3868\n\n#Klim #Fox #Honda #KTM #Polaris #MathiasMarine #Marketplace #VTT #Moto`;
-    document.getElementById('ann-box').textContent=txt;
-}
-
-function copyGen(){ navigator.clipboard.writeText(document.getElementById('ann-box').textContent); alert("Copié !"); }
-function goGen(sku){ showTab('generateur'); selP(sku); }
-
-async function startAgent(file){
-    if(!file)return;
-    if(typeof imglyRemoveBackground === 'undefined') { alert("IA non connectée. Attends le voyant vert."); return; }
-    
-    document.getElementById('prog-wrap').style.display='block';
-    document.getElementById('prog-fill').style.width="20%";
-    
-    const dataUrl = await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(file);});
-    document.getElementById('img-orig').src=dataUrl;
-    document.getElementById('photo-compare').style.display='grid';
-    document.getElementById('result-placeholder').style.display='none';
-
-    try {
-        const config = { publicPath: "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/" };
-        document.getElementById('prog-fill').style.width="50%";
-        document.getElementById('prog-msg').textContent="Détourage IA en cours...";
-        
-        const blob = await imglyRemoveBackground(dataUrl, config);
-        const url = URL.createObjectURL(blob);
-        
-        const img = new Image();
-        img.onload = () => {
-            const c = document.getElementById('canvas-result');
-            const ctx = c.getContext('2d');
-            c.width = img.width; c.height = img.height;
-            ctx.fillStyle = document.getElementById('bgc').value;
-            ctx.fillRect(0,0,c.width,c.height);
-            ctx.drawImage(img,0,0);
-            document.getElementById('prog-fill').style.width="100%";
-            document.getElementById('prog-msg').textContent="Terminé !";
-            document.getElementById('dl-btn').style.display='block';
+    // LECTURE EXCEL (Miroir exact de ton fichier)
+    document.getElementById('xlIn').addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const wb = XLSX.read(ev.target.result, {type: 'array'});
+            const ws = wb.Sheets['_Données'];
+            if(!ws) return alert("Onglet '_Données' manquant");
+            const rows = XLSX.utils.sheet_to_json(ws, {header: 1});
+            produits = [];
+            for(let i = 1; i < rows.length; i++) {
+                const r = rows[i];
+                if(!r[1]) continue;
+                produits.push({
+                    cat: r[0] || 'AUTRES',
+                    sku: String(r[1]),
+                    desc: r[2] || '',
+                    age: parseFloat(r[4]) || 0,
+                    cout: parseFloat(r[7]) || 0,
+                    prix: parseFloat(r[8]) || 0,
+                    marge: parseFloat(r[9]) || 0
+                });
+            }
+            localStorage.setItem('mms_v6', JSON.stringify(produits));
+            render();
         };
-        img.src = url;
-    } catch(e) { alert("Erreur IA. Rafraîchis la page."); }
-}
+        reader.readAsArrayBuffer(e.target.files[0]);
+    });
 
-function downloadResult(){
-    const a = document.createElement('a'); a.download = "MMS-Photo.png";
-    a.href = document.getElementById('canvas-result').toDataURL(); a.click();
-}
+    function render() {
+        const totalCout = produits.reduce((s,p) => s + p.cout, 0);
+        const totalMarge = produits.reduce((s,p) => s + p.marge, 0);
+        const urgents = produits.filter(p => p.age >= 24).length;
+
+        document.getElementById('dash-stats').innerHTML = `
+            <div class="stat-card"><span class="stat-lbl">Valeur Dormante (Coût)</span><span class="stat-val">${totalCout.toLocaleString('fr-CA')} $</span></div>
+            <div class="stat-card" style="border-left-color:var(--green)"><span class="stat-lbl">Marge Potentielle</span><span class="stat-val" style="color:var(--green)">${totalMarge.toLocaleString('fr-CA')} $</span></div>
+            <div class="stat-card" style="border-left-color:var(--red)"><span class="stat-lbl">Urgents (+24 mois)</span><span class="stat-val" style="color:var(--red)">${urgents}</span></div>
+        `;
+
+        const cats = [...new Set(produits.map(p => p.cat))].sort();
+        document.getElementById('dash-body').innerHTML = cats.map(c => {
+            const items = produits.filter(p => p.cat === c);
+            const cost = items.reduce((s,p) => s + p.cout, 0);
+            const marg = items.reduce((s,p) => s + p.marge, 0);
+            return `<tr><td><strong>${c}</strong></td><td>${items.length}</td><td>${cost.toFixed(2)}$</td><td>${marg.toFixed(2)}$</td></tr>`;
+        }).join('');
+        renderInv();
+    }
+
+    function renderInv() {
+        const q = document.getElementById('srch').value.toLowerCase();
+        const filtered = produits.filter(p => p.sku.includes(q) || p.desc.toLowerCase().includes(q));
+        document.getElementById('inv-body').innerHTML = filtered.map(p => `
+            <tr><td>${p.sku}</td><td>${p.desc}</td><td class="${p.age >= 24 ? 'prio-red' : ''}">${p.age}</td><td>${p.cout}$</td><td>${p.prix}$</td><td style="color:var(--blue); font-weight:bold;">${p.marge}$</td></tr>
+        `).join('');
+    }
+
+    document.getElementById('srch').addEventListener('input', renderInv);
+
+    // STUDIO IA (Correction de Force)
+    document.getElementById('imgIn').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        document.getElementById('prog').style.display = 'block';
+        const url = URL.createObjectURL(file);
+        try {
+            const blob = await imglyRemoveBackground(url, { publicPath: "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/" });
+            const resUrl = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+                const cvs = document.getElementById('cvs');
+                cvs.width = img.width; cvs.height = img.height;
+                const ctx = cvs.getContext('2d');
+                ctx.fillStyle = "white"; ctx.fillRect(0,0,cvs.width,cvs.height);
+                ctx.drawImage(img,0,0);
+                cvs.style.display = 'block';
+                document.getElementById('dl').style.display = 'block';
+                document.getElementById('prog').style.display = 'none';
+            };
+            img.src = resUrl;
+        } catch(e) { alert("Erreur IA"); }
+    });
+
+    function dlImg() {
+        const a = document.createElement('a'); a.download = "MMS-Marketplace.png";
+        a.href = document.getElementById('cvs').toDataURL(); a.click();
+    }
+
+    function go(id) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('sec-' + id).classList.add('active');
+    }
+
+    const saved = localStorage.getItem('mms_v6');
+    if(saved) { produits = JSON.parse(saved); render(); }
 </script>
 </body>
 </html>

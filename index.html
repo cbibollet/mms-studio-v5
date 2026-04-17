@@ -3,142 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMS Studio v9.0 — Mode API</title>
+    <title>MMS Studio v10.0 — Mathias Marine Sport</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        :root { --blue: #1877F2; --green: #42b72a; --bg: #f0f2f5; }
+        :root { --blue: #1877F2; --green: #42b72a; --red: #e53935; --bg: #f0f2f5; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: #1c1e21; }
-        .header { background: var(--blue); padding: 15px 25px; color: white; display: flex; justify-content: space-between; align-items: center; }
-        .status-pill { background: #00e676; padding: 6px 15px; border-radius: 20px; font-size: 11px; color: #004d40; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        .tabs { background: white; display: flex; border-bottom: 1px solid #ddd; }
-        .tab { padding: 15px 25px; cursor: pointer; font-weight: bold; color: #65676b; }
-        .tab.active { color: var(--blue); border-bottom: 3px solid var(--blue); }
-        .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+        body { background: var(--bg); color: #1c1e21; line-height: 1.4; }
+        
+        .header { background: var(--blue); padding: 15px 25px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .status-pill { background: #e8f5e9; padding: 6px 15px; border-radius: 20px; font-size: 11px; color: #2e7d32; font-weight: bold; }
+        
+        .tabs { background: white; display: flex; border-bottom: 1px solid #ddd; sticky: top; z-index: 100; }
+        .tab { padding: 15px 25px; cursor: pointer; font-weight: bold; color: #65676b; border-bottom: 4px solid transparent; }
+        .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+        .container { padding: 20px; max-width: 1400px; margin: 0 auto; }
         .section { display: none; }
         .section.active { display: block; }
-        .card { background: white; padding: 25px; border-radius: 15px; border: 1px solid #ddd; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .api-input { width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ccc; text-align: center; }
+
+        /* DASHBOARD */
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; border-left: 6px solid var(--blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-val { font-size: 24px; font-weight: 800; color: var(--blue); display: block; }
+        .stat-lbl { font-size: 11px; text-transform: uppercase; color: #65676b; font-weight: bold; }
+
+        /* TABLES */
+        .table-box { background: white; border-radius: 12px; border: 1px solid #ddd; overflow: hidden; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+        .prio-red { color: var(--red); font-weight: bold; background: #fff5f5; }
+
+        /* STUDIO IA */
+        .card-studio { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; border: 1px solid #ddd; text-align: center; }
+        .api-input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd; text-align: center; font-family: monospace; }
         .drop-zone { border: 3px dashed var(--blue); padding: 40px; border-radius: 15px; background: #f0f7ff; cursor: pointer; position: relative; }
         .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
         #res-img { max-width: 100%; margin-top: 20px; border-radius: 10px; display: none; border: 1px solid #ddd; }
-        .btn { padding: 12px 24px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; background: var(--green); color: white; margin-top: 15px; width: 100%; }
-        .btn-blue { background: var(--blue); margin-top: 0; width: auto; }
+
+        /* BUTTONS */
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; display: inline-block; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-green { background: var(--green); color: white; width: 100%; margin-top: 15px; }
+        .btn-copy { background: #f0f2f5; color: var(--blue); font-size: 11px; padding: 5px 10px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>MMS STUDIO — Mathias Marine Sport</h1>
-    <div class="status-pill">● Mode API Activé (Stable)</div>
+    <h1>MMS Studio v10.0</h1>
+    <div class="status-pill">● IA MODE API (Stable)</div>
 </div>
 
 <div class="tabs">
-    <div class="tab active" onclick="go('studio')">🎨 Studio IA</div>
-    <div class="tab" onclick="go('dash')">📊 Dashboard</div>
-    <div class="tab" onclick="go('inv')">📦 Inventaire</div>
+    <div class="tab active" onclick="go('dash')">📊 Dashboard</div>
+    <div class="tab" onclick="go('inv')">📦 Inventaire & Annonces</div>
+    <div class="tab" onclick="go('suivi')">✅ Suivi des Ventes</div>
+    <div class="tab" onclick="go('studio')">🎨 Studio IA</div>
 </div>
 
 <div class="container">
-    <div id="sec-studio" class="section active">
-        <div class="card">
-            <h3>Configuration de l'IA</h3>
-            <p style="font-size: 12px; margin-bottom: 10px; color: #666;">Colle ta clé Remove.bg ici (Gratuit 50/mois)</p>
-            <input type="password" id="apiKey" class="api-input" placeholder="Colle ta clé API ici...">
-            
-            <div class="drop-zone">
-                <input type="file" id="imgIn" accept="image/*">
-                <h3>📸 Glisse ta photo produit</h3>
-                <p>Détourage instantané via Cloud API</p>
-            </div>
-            
-            <div id="loading" style="display:none; margin-top:20px; font-weight:bold; color:var(--blue);">Traitement par l'IA en cours...</div>
-            <img id="res-img" src="" alt="Résultat">
-            <a id="dl-link" style="display:none" class="btn">💾 Télécharger la photo (PNG)</a>
-        </div>
-    </div>
 
-    <div id="sec-dash" class="section">
-        <div class="card">
-            <label class="btn btn-blue">📁 Importer Excel <input type="file" id="xlIn" accept=".xlsx,.xls" style="display:none"></label>
-            <div id="stats" style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
+    <div id="sec-dash" class="section active">
+        <div style="margin-bottom: 20px;">
+            <label class="btn btn-blue">📁 Importer VENTE Facebook.xlsx <input type="file" id="xlIn" accept=".xlsx,.xls" style="display:none"></label>
+        </div>
+        <div class="dash-grid" id="dash-stats">
+            <div class="stat-card"><span class="stat-lbl">Valeur Stock</span><span class="stat-val">0.00 $</span></div>
+            <div class="stat-card"><span class="stat-lbl">Marge Est.</span><span class="stat-val">0.00 $</span></div>
+        </div>
+        <div class="table-box">
+            <h3 style="padding:15px; border-bottom:1px solid #eee;">Résumé par Catégorie</h3>
+            <table>
+                <thead><tr><th>Catégorie</th><th>Articles</th><th>Coût Total</th><th>Marge Est.</th></tr></thead>
+                <tbody id="dash-body"></tbody>
+            </table>
         </div>
     </div>
 
     <div id="sec-inv" class="section">
-        <div class="card">
-            <input type="text" id="search" placeholder="Rechercher SKU..." style="width:100%; padding:10px; margin-bottom:10px;">
-            <div id="list" style="text-align:left; font-size:12px;"></div>
+        <input type="text" id="srch" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px" placeholder="🔍 Rechercher SKU ou Description...">
+        <div class="table-box">
+            <table>
+                <thead><tr><th>SKU</th><th>Description</th><th>Âge (m)</th><th>Prix FB</th><th>Action</th></tr></thead>
+                <tbody id="inv-body"></tbody>
+            </table>
         </div>
     </div>
+
+    <div id="sec-suivi" class="section">
+        <div class="table-box">
+            <h3 style="padding:15px; border-bottom:1px solid #eee;">Suivi Réel (Miroir Excel)</h3>
+            <table>
+                <thead><tr><th>SKU</th><th>Description</th><th>Coût</th><th>Prix FB</th><th>Marge</th><th>Statut</th></tr></thead>
+                <tbody id="suivi-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="sec-studio" class="section">
+        <div class="card-studio">
+            <h3>Configuration IA (Remove.bg)</h3>
+            <input type="password" id="apiKey" class="api-input" placeholder="Colle ta clé API ici...">
+            <div class="drop-zone">
+                <input type="file" id="imgIn" accept="image/*">
+                <h3>📸 Glisse la photo produit</h3>
+                <p>Le fond blanc sera ajouté automatiquement</p>
+            </div>
+            <div id="loading" style="display:none; margin-top:15px; font-weight:bold; color:var(--blue);">Traitement Cloud IA en cours...</div>
+            <img id="res-img" src="">
+            <a id="dl-link" class="btn btn-green" style="display:none">💾 Télécharger la photo</a>
+        </div>
+    </div>
+
 </div>
 
 <script>
     let db = [];
 
-    // --- LOGIQUE IA VIA API ---
-    document.getElementById('imgIn').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        const key = document.getElementById('apiKey').value;
-        
-        if(!key) { alert("Entre ta clé API d'abord !"); return; }
-        if(!file) return;
-
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('res-img').style.display = 'none';
-
-        const formData = new FormData();
-        formData.append('image_file', file);
-        formData.append('size', 'auto');
-
-        try {
-            const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-                method: 'POST',
-                headers: { 'X-Api-Key': key },
-                body: formData
-            });
-
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const img = document.getElementById('res-img');
-                img.src = url;
-                img.style.display = 'block';
-                
-                const dl = document.getElementById('dl-link');
-                dl.href = url;
-                dl.download = "MMS-Produit.png";
-                dl.style.display = 'block';
-            } else {
-                alert("Erreur API : Vérifie ta clé ou ton quota.");
-            }
-        } catch (err) {
-            alert("Erreur de connexion à l'IA.");
-        } finally {
-            document.getElementById('loading').style.display = 'none';
-        }
-    });
-
-    // --- LOGIQUE EXCEL ---
+    // --- IMPORTATION EXCEL ---
     document.getElementById('xlIn').addEventListener('change', (e) => {
         const reader = new FileReader();
         reader.onload = (ev) => {
             const wb = XLSX.read(ev.target.result, {type: 'array'});
             const ws = wb.Sheets['_Données'];
+            if(!ws) return alert("Onglet '_Données' manquant");
             const rows = XLSX.utils.sheet_to_json(ws, {header: 1});
-            db = rows.slice(1).map(r => ({ sku: r[1], desc: r[2], cout: r[7], marge: r[9] }));
+            db = [];
+            for(let i = 1; i < rows.length; i++) {
+                const r = rows[i]; if(!r[1]) continue;
+                db.push({
+                    cat: r[0] || 'AUTRES',
+                    sku: String(r[1]),
+                    desc: r[2] || '',
+                    age: parseFloat(r[4]) || 0,
+                    cout: parseFloat(r[7]) || 0,
+                    prix: parseFloat(r[8]) || 0,
+                    marge: parseFloat(r[9]) || 0,
+                    prio: r[12] || 'OK'
+                });
+            }
+            localStorage.setItem('mms_v10', JSON.stringify(db));
             render();
         };
         reader.readAsArrayBuffer(e.target.files[0]);
     });
 
     function render() {
-        const total = db.reduce((s,p) => s + (p.cout || 0), 0);
-        document.getElementById('stats').innerHTML = `
-            <div class="card" style="background:#e3f2fd"><b>Valeur Stock</b><br>${total.toFixed(2)}$</div>
-            <div class="card" style="background:#e8f5e9"><b>Nb Articles</b><br>${db.length}</div>
+        // Stats
+        const totalCout = db.reduce((s,p) => s + p.cout, 0);
+        const totalMarge = db.reduce((s,p) => s + p.marge, 0);
+        const urgents = db.filter(p => p.age >= 24).length;
+
+        document.getElementById('dash-stats').innerHTML = `
+            <div class="stat-card"><span class="stat-lbl">Valeur Dormante</span><span class="stat-val">${totalCout.toLocaleString('fr-CA')}$</span></div>
+            <div class="stat-card" style="border-left-color:var(--green)"><span class="stat-lbl">Marge Potentielle</span><span class="stat-val" style="color:var(--green)">${totalMarge.toLocaleString('fr-CA')}$</span></div>
+            <div class="stat-card" style="border-left-color:var(--red)"><span class="stat-lbl">Articles Urgents (+24m)</span><span class="stat-val" style="color:var(--red)">${urgents}</span></div>
         `;
+
+        // Catégories
+        const cats = [...new Set(db.map(p => p.cat))].sort();
+        document.getElementById('dash-body').innerHTML = cats.map(c => {
+            const items = db.filter(p => p.cat === c);
+            return `<tr><td>${c}</td><td>${items.length}</td><td>${items.reduce((s,p)=>s+p.cout,0).toFixed(2)}$</td><td>${items.reduce((s,p)=>s+p.marge,0).toFixed(2)}$</td></tr>`;
+        }).join('');
+
+        renderInv();
+        renderSuivi();
     }
+
+    function renderInv() {
+        const q = document.getElementById('srch').value.toLowerCase();
+        const f = db.filter(p => p.sku.includes(q) || p.desc.toLowerCase().includes(q));
+        document.getElementById('inv-body').innerHTML = f.map(p => `
+            <tr>
+                <td>${p.sku}</td>
+                <td><strong>${p.desc}</strong></td>
+                <td class="${p.age >= 24 ? 'prio-red' : ''}">${p.age} m</td>
+                <td>${p.prix}$</td>
+                <td><button class="btn btn-copy" onclick="copyAd('${p.sku}')">Copier Annonce</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderSuivi() {
+        document.getElementById('suivi-body').innerHTML = db.slice(0, 50).map(p => `
+            <tr>
+                <td>${p.sku}</td>
+                <td>${p.desc}</td>
+                <td>${p.cout}$</td>
+                <td>${p.prix}$</td>
+                <td style="color:var(--blue);font-weight:bold">${p.marge}$</td>
+                <td>Photos en cours</td>
+            </tr>
+        `).join('');
+    }
+
+    // --- GÉNÉRATEUR D'ANNONCE ---
+    function copyAd(sku) {
+        const p = db.find(x => x.sku === sku);
+        const text = `🚤 MATHIAS MARINE SPORT\n\nArticle : ${p.desc}\nSKU : ${p.sku}\nÉtat : Neuf / Liquidation\n\nPrix : ${p.prix} $\n\n📍 Disponible chez Mathias Marine Sport à Otterburn Park.\n📩 Contactez-nous pour plus d'infos !`;
+        navigator.clipboard.writeText(text);
+        alert("Annonce copiée pour le SKU " + sku);
+    }
+
+    // --- STUDIO IA API ---
+    document.getElementById('imgIn').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        const key = document.getElementById('apiKey').value;
+        if(!key) return alert("Veuillez entrer votre clé API Remove.bg");
+        
+        document.getElementById('loading').style.display = 'block';
+        const formData = new FormData();
+        formData.append('image_file', file);
+        formData.append('size', 'auto');
+
+        const res = await fetch('https://api.remove.bg/v1.0/removebg', {
+            method: 'POST',
+            headers: { 'X-Api-Key': key },
+            body: formData
+        });
+
+        if(res.ok) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            document.getElementById('res-img').src = url;
+            document.getElementById('res-img').style.display = 'block';
+            document.getElementById('dl-link').href = url;
+            document.getElementById('dl-link').download = "MMS-Studio.png";
+            document.getElementById('dl-link').style.display = 'block';
+        } else { alert("Erreur API : Vérifiez votre clé ou votre quota."); }
+        document.getElementById('loading').style.display = 'none';
+    });
+
+    document.getElementById('srch').addEventListener('input', renderInv);
 
     function go(id) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -146,6 +244,9 @@
         document.getElementById('sec-' + id).classList.add('active');
         event.target.classList.add('active');
     }
+
+    const saved = localStorage.getItem('mms_v10');
+    if(saved) { db = JSON.parse(saved); render(); }
 </script>
 </body>
 </html>

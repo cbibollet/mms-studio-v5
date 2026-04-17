@@ -3,250 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMS Studio v10.0 — Mathias Marine Sport</title>
+    <title>MMS Studio v20.0 — Contrôle Visuel</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        :root { --blue: #1877F2; --green: #42b72a; --red: #e53935; --bg: #f0f2f5; }
+        :root { --blue: #1877F2; --green: #42b72a; --red: #e53935; --bg: #f0f2f5; --dark: #1c1e21; --orange: #f57c00; --border: #ddd;}
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: #1c1e21; line-height: 1.4; }
+        body { background: var(--bg); color: var(--dark); line-height: 1.4; }
         
-        .header { background: var(--blue); padding: 15px 25px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .status-pill { background: #e8f5e9; padding: 6px 15px; border-radius: 20px; font-size: 11px; color: #2e7d32; font-weight: bold; }
-        
-        .tabs { background: white; display: flex; border-bottom: 1px solid #ddd; sticky: top; z-index: 100; }
-        .tab { padding: 15px 25px; cursor: pointer; font-weight: bold; color: #65676b; border-bottom: 4px solid transparent; }
+        .header { background: var(--dark); padding: 15px 25px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--blue);}
+        .user-info { display: flex; align-items: center; gap: 15px; font-size: 13px; font-weight: bold; }
+        .btn-logout { background: var(--red); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+
+        .tabs { background: white; display: flex; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; }
+        .tab { padding: 15px 20px; cursor: pointer; font-weight: bold; color: #65676b; border-bottom: 4px solid transparent; font-size: 14px;}
         .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .admin-only { display: none; }
 
         .container { padding: 20px; max-width: 1400px; margin: 0 auto; }
         .section { display: none; }
         .section.active { display: block; }
 
         /* DASHBOARD */
-        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; border-left: 6px solid var(--blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .stat-val { font-size: 24px; font-weight: 800; color: var(--blue); display: block; }
-        .stat-lbl { font-size: 11px; text-transform: uppercase; color: #65676b; font-weight: bold; }
+        .dash-grid-main { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-card.main-blue { border-left: 8px solid var(--blue); }
+        .stat-card.main-green { border-left: 8px solid var(--green); }
+        .stat-val { font-size: 28px; font-weight: 800; display: block; margin-top: 5px; }
+        .stat-lbl { font-size: 12px; text-transform: uppercase; color: #65676b; font-weight: bold; }
 
-        /* TABLES */
+        /* TABLEAUX & FILTRES */
         .table-box { background: white; border-radius: 12px; border: 1px solid #ddd; overflow: hidden; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; }
+        .filter-bar { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .filter-input { padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #eee; font-weight: 800; }
         td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
-        .prio-red { color: var(--red); font-weight: bold; background: #fff5f5; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
+        .badge-red { background: var(--red); }
+        .badge-green { background: var(--green); }
+        .badge-orange { background: var(--orange); }
 
-        /* STUDIO IA */
-        .card-studio { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; border: 1px solid #ddd; text-align: center; }
-        .api-input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd; text-align: center; font-family: monospace; }
-        .drop-zone { border: 3px dashed var(--blue); padding: 40px; border-radius: 15px; background: #f0f7ff; cursor: pointer; position: relative; }
-        .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-        #res-img { max-width: 100%; margin-top: 20px; border-radius: 10px; display: none; border: 1px solid #ddd; }
+        /* STUDIO, COLLAGE & SÉLECTEUR PHOTO */
+        .card-studio { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; border: 1px solid #ddd; }
+        .api-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; text-align: center; font-weight: bold; color: var(--blue); }
+        .drop-zone { border: 3px dashed var(--blue); padding: 40px; border-radius: 15px; background: #f0f7ff; cursor: pointer; text-align: center; margin-bottom: 20px; transition: 0.3s;}
+        
+        /* Nouveau style pour le sélecteur de traitement photo */
+        .photo-style-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .style-btn { background: white; border: 2px solid var(--border); padding: 15px; border-radius: 10px; cursor: pointer; text-align: center; transition: 0.2s; font-weight: bold; color: #666; }
+        .style-btn:hover { border-color: var(--blue); color: var(--blue); background: #f0f7ff; }
+        .style-btn.active { border-color: var(--blue); color: var(--blue); background: #e1efff; box-shadow: 0 0 10px rgba(24,119,242,0.2); }
+        .style-btn img { width: 40px; height: 40px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
 
-        /* BUTTONS */
-        .btn { padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; display: inline-block; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-green { background: var(--green); color: white; width: 100%; margin-top: 15px; }
-        .btn-copy { background: #f0f2f5; color: var(--blue); font-size: 11px; padding: 5px 10px; }
+        .result-box { display: grid; grid-template-columns: 350px 1fr; gap: 30px; margin-top: 25px; display: none; }
+        #res-img { width: 100%; border-radius: 12px; border: 1px solid #ddd; background: #fff; }
+        
+        .copy-group { margin-bottom: 15px; }
+        .copy-group label { display: block; font-size: 11px; font-weight: bold; color: #65676b; margin-bottom: 4px; text-transform: uppercase; }
+        .copy-row { display: flex; gap: 8px; }
+        .copy-row input, .copy-row textarea { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; background: #fdfdfd; }
+        .copy-btn { background: var(--blue); color: white; border: none; padding: 0 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px;}
+        .copy-btn.success { background: var(--green); }
+
+        .btn-blue { background: var(--blue); color: white; padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; display: inline-block;}
+        .btn-green { background: var(--green); color: white; width: 100%; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px;}
+        .btn-publish { background: var(--green); color: white; width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; margin-top: 15px;}
+
+        /* BROUILLONS */
+        .draft-card { background: white; border: 1px solid #ddd; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 200px 1fr; gap: 20px; margin-top:15px;}
+        .draft-img { width: 100%; border-radius: 8px; border: 1px solid #eee; background: #f8f9fa; }
+
+        /* MODAL LOGIN */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; width: 400px; text-align: center; }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; }
     </style>
 </head>
 <body>
 
+<div id="login-overlay">
+    <div class="login-box">
+        <h2 style="color:var(--blue);">MMS Studio v20</h2>
+        <p style="font-size:12px; color:#666; margin-bottom:20px;">Directeur des Ventes — Mathias Marine Sport</p>
+        <select id="login-user-select" class="login-input"></select>
+        <button class="btn-green" onclick="login()" style="width:100%; font-size:16px;">Se connecter</button>
+    </div>
+</div>
+
 <div class="header">
-    <h1>MMS Studio v10.0</h1>
-    <div class="status-pill">● IA MODE API (Stable)</div>
+    <h1>MMS Studio — Contrôle Photo</h1>
+    <div class="user-info">
+        <span id="current-user-display">👤 Non connecté</span>
+        <span id="current-role-display" class="badge badge-green"></span>
+        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
 </div>
 
 <div class="tabs">
-    <div class="tab active" onclick="go('dash')">📊 Dashboard</div>
-    <div class="tab" onclick="go('inv')">📦 Inventaire & Annonces</div>
-    <div class="tab" onclick="go('suivi')">✅ Suivi des Ventes</div>
-    <div class="tab" onclick="go('studio')">🎨 Studio IA</div>
+    <div class="tab active admin-only" onclick="go('dash')">📊 Dashboard & Import</div>
+    <div class="tab" onclick="go('suivi')">📦 Inventaire & Filtres</div>
+    <div class="tab" onclick="go('studio')">🎨 Créateur d'Annonces</div>
+    <div class="tab" onclick="go('saved')" style="color:var(--orange);">📸 Brouillons FB</div>
+    <div class="tab" onclick="go('history')" style="color:var(--green);">✅ Historique Ventes</div>
+    <div class="tab admin-only" onclick="go('users')" style="color:var(--red);">👥 Équipe (Admin)</div>
 </div>
 
 <div class="container">
 
-    <div id="sec-dash" class="section active">
-        <div style="margin-bottom: 20px;">
-            <label class="btn btn-blue">📁 Importer VENTE Facebook.xlsx <input type="file" id="xlIn" accept=".xlsx,.xls" style="display:none"></label>
+    <div id="sec-dash" class="section active admin-only">
+        <div class="dash-header">
+            <h2>Vue Globale (Administrateur)</h2>
+            <label class="btn-blue">📁 Importer Fichier <input type="file" id="xlIn" accept=".xlsx,.xls,.csv" style="display:none"></label>
         </div>
-        <div class="dash-grid" id="dash-stats">
-            <div class="stat-card"><span class="stat-lbl">Valeur Stock</span><span class="stat-val">0.00 $</span></div>
-            <div class="stat-card"><span class="stat-lbl">Marge Est.</span><span class="stat-val">0.00 $</span></div>
-        </div>
-        <div class="table-box">
-            <h3 style="padding:15px; border-bottom:1px solid #eee;">Résumé par Catégorie</h3>
-            <table>
-                <thead><tr><th>Catégorie</th><th>Articles</th><th>Coût Total</th><th>Marge Est.</th></tr></thead>
-                <tbody id="dash-body"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="sec-inv" class="section">
-        <input type="text" id="srch" style="width:100%; padding:15px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px" placeholder="🔍 Rechercher SKU ou Description...">
-        <div class="table-box">
-            <table>
-                <thead><tr><th>SKU</th><th>Description</th><th>Âge (m)</th><th>Prix FB</th><th>Action</th></tr></thead>
-                <tbody id="inv-body"></tbody>
-            </table>
-        </div>
+        <div class="dash-grid-main" id="dash-main"></div>
     </div>
 
     <div id="sec-suivi" class="section">
         <div class="table-box">
-            <h3 style="padding:15px; border-bottom:1px solid #eee;">Suivi Réel (Miroir Excel)</h3>
+            <div class="filter-bar">
+                <input type="text" id="srchInv" class="filter-input" placeholder="🔍 SKU ou mot clé..." style="width:250px;">
+                <select id="catFilter" class="filter-input"><option value="">Toutes Catégories</option></select>
+                <select id="ageFilter" class="filter-input">
+                    <option value="">Tous les âges</option>
+                    <option value="<12">Moins de 12 mois</option>
+                    <option value="12-24">12 à 24 mois</option>
+                    <option value=">24">URGENT : + de 24 mois</option>
+                </select>
+            </div>
             <table>
-                <thead><tr><th>SKU</th><th>Description</th><th>Coût</th><th>Prix FB</th><th>Marge</th><th>Statut</th></tr></thead>
-                <tbody id="suivi-body"></tbody>
+                <thead>
+                    <tr>
+                        <th>SKU</th><th>Description</th><th>Âge (Mois)</th>
+                        <th class="admin-only">Coût</th>
+                        <th>Prix Vente FB</th>
+                        <th class="admin-only">Marge $</th>
+                        <th>Vente Finale</th>
+                    </tr>
+                </thead>
+                <tbody id="suivi-rows"></tbody>
             </table>
         </div>
     </div>
 
     <div id="sec-studio" class="section">
         <div class="card-studio">
-            <h3>Configuration IA (Remove.bg)</h3>
-            <input type="password" id="apiKey" class="api-input" placeholder="Colle ta clé API ici...">
-            <div class="drop-zone">
-                <input type="file" id="imgIn" accept="image/*">
-                <h3>📸 Glisse la photo produit</h3>
-                <p>Le fond blanc sera ajouté automatiquement</p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+                <input type="password" id="apiKey" class="api-input" placeholder="🔑 Clé API Remove.bg (Requis si Fond Blanc)">
+                <input type="text" id="skuInput" list="sku-list" class="api-input" placeholder="🔍 Taper un SKU pour auto-remplir...">
             </div>
-            <div id="loading" style="display:none; margin-top:15px; font-weight:bold; color:var(--blue);">Traitement Cloud IA en cours...</div>
-            <img id="res-img" src="">
-            <a id="dl-link" class="btn btn-green" style="display:none">💾 Télécharger la photo</a>
+            <datalist id="sku-list"></datalist>
+
+            <div class="photo-style-selector">
+                <div class="style-btn active" id="btn-style-nature" onclick="setPhotoStyle('nature')">
+                    📸 Photo Naturelle (Brute)
+                </div>
+                <div class="style-btn" id="btn-style-ia" onclick="setPhotoStyle('ia')">
+                    ✨ Fond Blanc Studio (IA)
+                </div>
+            </div>
+
+            <div class="drop-zone" onclick="document.getElementById('imgIn').click()">
+                <input type="file" id="imgIn" accept="image/*" style="display:none">
+                <h3 id="studio-action-text">📸 Glisser la photo originale (Mode Naturel Actif)</h3>
+                <p>La photo et l'annonce seront générées selon le SKU</p>
+            </div>
+            
+            <div id="loading" style="display:none; text-align:center; font-weight:bold; color:var(--blue);">⏳ L'IA travaille sur la photo... patientez...</div>
+            
+            <div id="result-container" class="result-box">
+                <div>
+                    <img id="res-img" src="">
+                    <a id="dl-link" class="btn-green" style="display:block; text-align:center; text-decoration:none;">💾 Télécharger Photo</a>
+                </div>
+                <div>
+                    <div class="copy-group"><label>Titre</label><div class="copy-row"><input type="text" id="v-titre" readonly><button class="copy-btn" onclick="cp('v-titre', this)">Copier</button></div></div>
+                    <div class="copy-group"><label>Prix ($)</label><div class="copy-row"><input type="text" id="v-prix" readonly><button class="copy-btn" onclick="cp('v-prix', this)">Copier</button></div></div>
+                    <div class="copy-group"><label>Description</label><div class="copy-row"><textarea id="v-desc" readonly rows="8"></textarea><button class="copy-btn" onclick="cp('v-desc', this)">Copier</button></div></div>
+                    <button class="btn-blue" style="width:100%; margin-top:10px;" onclick="saveAdToDrafts()">📥 Sauvegarder dans Brouillons</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sec-saved" class="section">
+        <div id="draft-container"></div>
+    </div>
+
+    <div id="sec-history" class="section">
+        <div class="table-box">
+            <div style="padding:15px; background:#e8f5e9; border-bottom:1px solid #eee;">
+                <h3 style="color:var(--green);">✅ Journal des Annonces Publiées</h3>
+            </div>
+            <table>
+                <thead><tr><th>Date Publication</th><th>Auteur (Commis)</th><th>SKU</th><th>Titre</th><th>Prix Vendu</th></tr></thead>
+                <tbody id="history-rows"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="sec-users" class="section admin-only">
+        <div class="card-studio" style="text-align:left;">
+            <h3>👥 Gérer l'équipe</h3>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <input type="text" id="new-u-name" class="filter-input" placeholder="Nom du commis">
+                <input type="email" id="new-u-email" class="filter-input" placeholder="Courriel">
+                <select id="new-u-role" class="filter-input"><option value="commis">Commis (Limité)</option><option value="admin">Admin (Accès Total)</option></select>
+                <button class="btn-blue" onclick="addUser()">Ajouter</button>
+            </div>
+            <table style="margin-top:20px;">
+                <thead><tr><th>Nom</th><th>Courriel</th><th>Rôle</th><th>Action</th></tr></thead>
+                <tbody id="users-rows"></tbody>
+            </table>
         </div>
     </div>
 
 </div>
 
 <script>
-    let db = [];
+    let db = JSON.parse(localStorage.getItem('mms_v19')) || [];
+    let savedAds = JSON.parse(localStorage.getItem('mms_saved_ads_v19')) || [];
+    let publishedAds = JSON.parse(localStorage.getItem('mms_published_v19')) || [];
+    let users = JSON.parse(localStorage.getItem('mms_users')) || [{ name: "Boss (Admin)", email: "admin@mathias.com", role: "admin" }];
+    let currentUser = null;
+    let currentBase64Image = "";
+    let selectedPhotoStyle = "nature"; // Par défaut, photo naturelle
 
-    // --- IMPORTATION EXCEL ---
+    // --- SÉLECTEUR DE STYLE PHOTO ---
+    function setPhotoStyle(style) {
+        selectedPhotoStyle = style;
+        document.getElementById('btn-style-nature').classList.remove('active');
+        document.getElementById('btn-style-ia').classList.remove('active');
+        
+        const actionText = document.getElementById('studio-action-text');
+        
+        if (style === 'nature') {
+            document.getElementById('btn-style-nature').classList.add('active');
+            actionText.innerText = "📸 Glisser la photo originale (Mode Naturel Actif)";
+        } else {
+            document.getElementById('btn-style-ia').classList.add('active');
+            actionText.innerText = "✨ Glisser la photo pour le fond blanc Studio (Mode IA Actif)";
+        }
+    }
+
+    // --- SYSTÈME DE CONNEXION ---
+    function initLogin() {
+        const select = document.getElementById('login-user-select');
+        select.innerHTML = users.map(u => `<option value="${u.name}">${u.name} (${u.role})</option>`).join('');
+        
+        let savedSession = localStorage.getItem('mms_current_user');
+        if(savedSession) {
+            currentUser = JSON.parse(savedSession);
+            document.getElementById('login-overlay').style.display = 'none';
+            applyRoles();
+        }
+    }
+
+    function login() {
+        const selectedName = document.getElementById('login-user-select').value;
+        currentUser = users.find(u => u.name === selectedName);
+        localStorage.setItem('mms_current_user', JSON.stringify(currentUser));
+        document.getElementById('login-overlay').style.display = 'none';
+        applyRoles();
+    }
+
+    function logout() { localStorage.removeItem('mms_current_user'); location.reload(); }
+
+    function applyRoles() {
+        document.getElementById('current-user-display').innerText = `👤 ${currentUser.name}`;
+        document.getElementById('current-role-display').innerText = currentUser.role.toUpperCase();
+        document.getElementById('current-role-display').className = currentUser.role === 'admin' ? 'badge badge-red' : 'badge badge-green';
+        const adminElements = document.querySelectorAll('.admin-only');
+        adminElements.forEach(el => { el.style.display = currentUser.role === 'admin' ? '' : 'none'; });
+        if(currentUser.role === 'commis') go('suivi'); else go('dash');
+        render(); renderUsers(); renderHistory();
+    }
+
+    // --- GESTION DES UTILISATEURS ---
+    function addUser() {
+        const name = document.getElementById('new-u-name').value; const email = document.getElementById('new-u-email').value; const role = document.getElementById('new-u-role').value;
+        if(!name) return;
+        users.push({ name, email, role }); localStorage.setItem('mms_users', JSON.stringify(users));
+        document.getElementById('new-u-name').value = ''; renderUsers();
+    }
+    function renderUsers() {
+        document.getElementById('users-rows').innerHTML = users.map((u, i) => `
+            <tr><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td>
+            <td>${u.role !== 'admin' || i !== 0 ? `<button onclick="delUser(${i})">❌</button>` : ''}</td></tr>`).join('');
+    }
+    function delUser(i) { users.splice(i, 1); localStorage.setItem('mms_users', JSON.stringify(users)); renderUsers(); }
+
+    // --- IMPORTATION & ALGO (Coût + 18% inchangé) ---
     document.getElementById('xlIn').addEventListener('change', (e) => {
         const reader = new FileReader();
         reader.onload = (ev) => {
             const wb = XLSX.read(ev.target.result, {type: 'array'});
-            const ws = wb.Sheets['_Données'];
-            if(!ws) return alert("Onglet '_Données' manquant");
-            const rows = XLSX.utils.sheet_to_json(ws, {header: 1});
+            const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
             db = [];
             for(let i = 1; i < rows.length; i++) {
                 const r = rows[i]; if(!r[1]) continue;
-                db.push({
-                    cat: r[0] || 'AUTRES',
-                    sku: String(r[1]),
-                    desc: r[2] || '',
-                    age: parseFloat(r[4]) || 0,
-                    cout: parseFloat(r[7]) || 0,
-                    prix: parseFloat(r[8]) || 0,
-                    marge: parseFloat(r[9]) || 0,
-                    prio: r[12] || 'OK'
-                });
+                let age = parseFloat(r[4]) || 0; let cout = parseFloat(r[7]) || 0; let prixExcel = parseFloat(r[8]) || 0;
+                let prixFB = 0;
+                if(age < 12) prixFB = prixExcel > 0 ? prixExcel : Math.round(cout * 1.4);
+                else if (age >= 12 && age <= 24) prixFB = Math.floor(cout * 1.30) + 0.99;
+                else prixFB = Math.floor(cout * 1.18) + 0.99; // Coût + 18%
+
+                db.push({ cat: r[0] || 'AUTRES', sku: String(r[1]), desc: r[2] || '', age, cout, prixFB, venteFinale: age >= 12 });
             }
-            localStorage.setItem('mms_v10', JSON.stringify(db));
-            render();
+            localStorage.setItem('mms_v19', JSON.stringify(db)); render(); alert("✅ Inventaire importé !");
         };
         reader.readAsArrayBuffer(e.target.files[0]);
     });
 
+    // --- RENDU GÉNÉRAL ---
     function render() {
-        // Stats
-        const totalCout = db.reduce((s,p) => s + p.cout, 0);
-        const totalMarge = db.reduce((s,p) => s + p.marge, 0);
-        const urgents = db.filter(p => p.age >= 24).length;
-
-        document.getElementById('dash-stats').innerHTML = `
-            <div class="stat-card"><span class="stat-lbl">Valeur Dormante</span><span class="stat-val">${totalCout.toLocaleString('fr-CA')}$</span></div>
-            <div class="stat-card" style="border-left-color:var(--green)"><span class="stat-lbl">Marge Potentielle</span><span class="stat-val" style="color:var(--green)">${totalMarge.toLocaleString('fr-CA')}$</span></div>
-            <div class="stat-card" style="border-left-color:var(--red)"><span class="stat-lbl">Articles Urgents (+24m)</span><span class="stat-val" style="color:var(--red)">${urgents}</span></div>
-        `;
-
-        // Catégories
+        if(!db.length) return;
+        document.getElementById('sku-list').innerHTML = db.map(p => `<option value="${p.sku}">${p.desc}</option>`).join('');
         const cats = [...new Set(db.map(p => p.cat))].sort();
-        document.getElementById('dash-body').innerHTML = cats.map(c => {
-            const items = db.filter(p => p.cat === c);
-            return `<tr><td>${c}</td><td>${items.length}</td><td>${items.reduce((s,p)=>s+p.cout,0).toFixed(2)}$</td><td>${items.reduce((s,p)=>s+p.marge,0).toFixed(2)}$</td></tr>`;
-        }).join('');
-
-        renderInv();
-        renderSuivi();
-    }
-
-    function renderInv() {
-        const q = document.getElementById('srch').value.toLowerCase();
-        const f = db.filter(p => p.sku.includes(q) || p.desc.toLowerCase().includes(q));
-        document.getElementById('inv-body').innerHTML = f.map(p => `
-            <tr>
-                <td>${p.sku}</td>
-                <td><strong>${p.desc}</strong></td>
-                <td class="${p.age >= 24 ? 'prio-red' : ''}">${p.age} m</td>
-                <td>${p.prix}$</td>
-                <td><button class="btn btn-copy" onclick="copyAd('${p.sku}')">Copier Annonce</button></td>
-            </tr>
-        `).join('');
-    }
-
-    function renderSuivi() {
-        document.getElementById('suivi-body').innerHTML = db.slice(0, 50).map(p => `
-            <tr>
-                <td>${p.sku}</td>
-                <td>${p.desc}</td>
-                <td>${p.cout}$</td>
-                <td>${p.prix}$</td>
-                <td style="color:var(--blue);font-weight:bold">${p.marge}$</td>
-                <td>Photos en cours</td>
-            </tr>
-        `).join('');
-    }
-
-    // --- GÉNÉRATEUR D'ANNONCE ---
-    function copyAd(sku) {
-        const p = db.find(x => x.sku === sku);
-        const text = `🚤 MATHIAS MARINE SPORT\n\nArticle : ${p.desc}\nSKU : ${p.sku}\nÉtat : Neuf / Liquidation\n\nPrix : ${p.prix} $\n\n📍 Disponible chez Mathias Marine Sport à Otterburn Park.\n📩 Contactez-nous pour plus d'infos !`;
-        navigator.clipboard.writeText(text);
-        alert("Annonce copiée pour le SKU " + sku);
-    }
-
-    // --- STUDIO IA API ---
-    document.getElementById('imgIn').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        const key = document.getElementById('apiKey').value;
-        if(!key) return alert("Veuillez entrer votre clé API Remove.bg");
+        document.getElementById('catFilter').innerHTML = `<option value="">Toutes Catégories</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join('');
         
-        document.getElementById('loading').style.display = 'block';
-        const formData = new FormData();
-        formData.append('image_file', file);
-        formData.append('size', 'auto');
+        if(currentUser && currentUser.role === 'admin') {
+            const tCout = db.reduce((s,p) => s + p.cout, 0); const tMarge = db.reduce((s,p) => s + (p.prixFB - p.cout), 0);
+            document.getElementById('dash-main').innerHTML = `
+                <div class="stat-card main-blue"><span class="stat-lbl">Cash-Flow Total (Coût)</span><span class="stat-val">${tCout.toLocaleString('fr-CA')} $</span></div>
+                <div class="stat-card main-green"><span class="stat-lbl">Marge Potentielle Globale</span><span class="stat-val" style="color:var(--green)">${tMarge.toLocaleString('fr-CA')} $</span></div>`;
+        }
+        renderSuivi(); renderSavedAds();
+    }
 
-        const res = await fetch('https://api.remove.bg/v1.0/removebg', {
-            method: 'POST',
-            headers: { 'X-Api-Key': key },
-            body: formData
+    // --- FILTRES INVENTAIRE ---
+    function renderSuivi() {
+        const q = document.getElementById('srchInv').value.toLowerCase();
+        const catF = document.getElementById('catFilter').value;
+        const ageF = document.getElementById('ageFilter').value;
+        const f = db.filter(p => {
+            let matchText = p.sku.includes(q) || p.desc.toLowerCase().includes(q);
+            let matchCat = catF === "" || p.cat === catF;
+            let matchAge = true;
+            if(ageF === "<12") matchAge = p.age < 12; else if(ageF === "12-24") matchAge = p.age >= 12 && p.age <= 24; else if(ageF === ">24") matchAge = p.age > 24;
+            return matchText && matchCat && matchAge;
         });
+        document.getElementById('suivi-rows').innerHTML = f.map(p => `
+            <tr><td>${p.sku}</td><td><strong>${p.desc}</strong></td>
+            <td><span class="badge ${p.age < 12 ? 'badge-green' : (p.age <= 24 ? 'badge-orange' : 'badge-red')}">${p.age}m</span></td>
+            ${currentUser.role === 'admin' ? `<td>${p.cout.toFixed(2)}$</td>` : ''}
+            <td><strong>${p.prixFB.toFixed(2)}$</strong></td>
+            ${currentUser.role === 'admin' ? `<td style="color:var(--blue); font-weight:bold;">${(p.prixFB - p.cout).toFixed(2)}$</td>` : ''}
+            <td>${p.venteFinale ? `<span class="badge badge-red">OUI</span>` : `<span class="badge badge-green">NON</span>`}</td></tr>`).join('');
+    }
+    document.getElementById('srchInv').addEventListener('input', renderSuivi);
+    document.getElementById('catFilter').addEventListener('change', renderSuivi);
+    document.getElementById('ageFilter').addEventListener('change', renderSuivi);
 
-        if(res.ok) {
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            document.getElementById('res-img').src = url;
-            document.getElementById('res-img').style.display = 'block';
-            document.getElementById('dl-link').href = url;
-            document.getElementById('dl-link').download = "MMS-Studio.png";
-            document.getElementById('dl-link').style.display = 'block';
-        } else { alert("Erreur API : Vérifiez votre clé ou votre quota."); }
-        document.getElementById('loading').style.display = 'none';
+    // --- BROUILLONS & PUBLICATION ---
+    function saveAdToDrafts() {
+        const t = document.getElementById('v-titre').value; const prix = document.getElementById('v-prix').value;
+        if(!t || !currentBase64Image) return alert("❌ Générez d'abord l'annonce.");
+        savedAds.push({ sku: document.getElementById('skuInput').value, titre: t, prix, desc: document.getElementById('v-desc').value, image: currentBase64Image, date: new Date().toISOString() });
+        localStorage.setItem('mms_saved_ads_v19', JSON.stringify(savedAds)); renderSavedAds(); alert("✅ Sauvegardé !");
+    }
+    function renderSavedAds() {
+        document.getElementById('draft-container').innerHTML = savedAds.map((ad, i) => `
+            <div class="draft-card"><img src="${ad.image}" class="draft-img"><div>
+            <h4 style="margin-bottom:10px;">${ad.titre} <span style="float:right; color:var(--green)">${ad.prix}$</span></h4>
+            <button class="btn-publish" onclick="markAsPublished(${i})">✅ PUBLIER L'ANNONCE</button>
+            <button class="btn-logout" style="margin-top:10px; width:100%" onclick="deleteSavedAd(${i})">🗑️ Supprimer</button>
+            </div></div>`).join('');
+    }
+    function deleteSavedAd(i) { savedAds.splice(i, 1); localStorage.setItem('mms_saved_ads_v19', JSON.stringify(savedAds)); renderSavedAds(); }
+    function markAsPublished(index) {
+        if(confirm("Confirmer la publication ?")) {
+            const ad = savedAds[index]; publishedAds.push({ date: new Date().toISOString(), author: currentUser.name, sku: ad.sku, titre: ad.titre, prix: ad.prix });
+            localStorage.setItem('mms_published_v19', JSON.stringify(publishedAds));
+            savedAds.splice(index, 1); localStorage.setItem('mms_saved_ads_v19', JSON.stringify(savedAds));
+            renderSavedAds(); renderHistory(); alert("✅ Historique mis à jour !");
+        }
+    }
+    function renderHistory() {
+        document.getElementById('history-rows').innerHTML = publishedAds.slice().reverse().map(ad => `
+            <tr><td>${new Date(ad.date).toLocaleDateString('fr-CA')}</td><td><strong>${ad.author}</strong></td><td>${ad.sku}</td><td>${ad.titre}</td><td>${ad.prix} $</td></tr>`).join('');
+    }
+
+    function cp(id, btn) { navigator.clipboard.writeText(document.getElementById(id).value); btn.innerText = "Copié ✅"; setTimeout(()=>btn.innerText="Copier", 2000); }
+
+    // --- LOGIQUE STUDIO AMÉLIORÉE (Choix IA ou Naturel) ---
+    document.getElementById('imgIn').addEventListener('change', async (e) => {
+        const file = e.target.files[0]; const key = document.getElementById('apiKey').value; const skuVal = document.getElementById('skuInput').value;
+        if(!file) return;
+        
+        // Sécurité : Si IA choisie, clé API requise
+        if (selectedPhotoStyle === 'ia' && !key) {
+            alert("❌ Veuillez entrer la clé API Remove.bg pour utiliser le mode Fond Blanc.");
+            e.target.value = ""; // Reset input
+            return;
+        }
+
+        document.getElementById('loading').style.display = 'block'; document.getElementById('result-container').style.display = 'none';
+
+        const p = db.find(x => x.sku === skuVal) || { desc: "Article Mathias", prixFB: 0, cat: "Divers", venteFinale: false };
+        
+        // Génération textes inchangée
+        let txtDesc = `🚤 MATHIAS MARINE SPORT\n\n🔹 Article : ${p.desc}\n🔹 SKU : ${p.sku}\n🔹 État : Neuf\n\n💰 Prix : ${p.prixFB.toFixed(2)} $\n\n`;
+        if(p.venteFinale) txtDesc += `⚠️ VENTE FINALE : Aucun retour.\n\n`;
+        txtDesc += `📍 874 Ch. Patriotes, Saint-Mathias-sur-Richelieu, QC`;
+        document.getElementById('v-titre').value = `${p.desc} — Neuf`; document.getElementById('v-prix').value = p.prixFB.toFixed(2); document.getElementById('v-desc').value = txtDesc;
+
+        // --- TRAITEMENT PHOTO ---
+        if (selectedPhotoStyle === 'nature') {
+            // MODE NATUREL : On convertit simplement la photo en base64 pour l'affichage et la sauvegarde
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = () => {
+                currentBase64Image = reader.result;
+                document.getElementById('res-img').src = currentBase64Image;
+                document.getElementById('result-container').style.display = 'grid';
+                document.getElementById('loading').style.display = 'none';
+                // Téléchargement directe de la photo d'origine
+                document.getElementById('dl-link').href = currentBase64Image;
+                document.getElementById('dl-link').download = `MMS-Nature-${skuVal || 'Photo'}.png`;
+            }
+        } else {
+            // MODE IA (FOND BLANC)
+            const fd = new FormData(); fd.append('image_file', file);
+            try {
+                const res = await fetch('https://api.remove.bg/v1.0/removebg', { method: 'POST', headers: { 'X-Api-Key': key }, body: fd });
+                if(res.ok) {
+                    const reader = new FileReader(); reader.readAsDataURL(await res.blob());
+                    reader.onloadend = () => {
+                        currentBase64Image = reader.result; document.getElementById('res-img').src = currentBase64Image;
+                        document.getElementById('result-container').style.display = 'grid';
+                        document.getElementById('dl-link').href = currentBase64Image;
+                        document.getElementById('dl-link').download = `MMS-Studio-${skuVal || 'Photo'}.png`;
+                    }
+                } else alert("Erreur API Remove.bg (Clé invalide ou quota dépassé).");
+            } catch(err) { alert("Erreur réseau."); }
+            document.getElementById('loading').style.display = 'none';
+        }
     });
-
-    document.getElementById('srch').addEventListener('input', renderInv);
 
     function go(id) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('sec-' + id).classList.add('active');
-        event.target.classList.add('active');
+        document.getElementById('sec-' + id).classList.add('active'); event.target.classList.add('active');
     }
 
-    const saved = localStorage.getItem('mms_v10');
-    if(saved) { db = JSON.parse(saved); render(); }
+    initLogin();
 </script>
 </body>
 </html>
